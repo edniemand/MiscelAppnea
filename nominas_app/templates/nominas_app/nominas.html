@@ -1,0 +1,57 @@
+{% extends "MiscelAppnea/base.html" %}
+{% load staticfiles %}
+{% block header %}
+<style media="screen">
+  .justify{
+    text-align: justify;
+  }
+  .col{
+    padding-top: 10px;
+    border-top: 10px solid red;
+    margin-right: 15px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="jumbotron">
+      <h1>Bienvenidos a la [App] Nóminas</h1>
+      <h6>La App <strong>Nóminas</strong> de Trabis, nos permite obtener reportes de las bases de datos de Nomipaq.</h6>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3 justify col">
+        <p>
+          Tener acceso a la información de todos los empleados de la organización es fundamental para cualquier empresa,
+          por ello, esta app cuenta con una serie de reportes que nos permiten desplegar información relevante de manera
+          práctica y sencilla.
+          <br>
+          <br>
+          Reportes:
+          <ul>
+            <li>Acumulados</li>
+            <li>Alimentos</li>
+            <li>Bancos</li>
+            <li>Dispersión</li>
+            <li>Factura</li>
+            <li>Fondo de ahorro</li>
+            <li>Promobien</li>
+            <li>Asistencias</li>
+            <li>Horas extra</li>
+          </ul>
+        </p>
+      </div>
+      <div class="col-md-3 col">
+        <center>
+          <img src="{% static 'img/nominas.jpg' %}" alt="">
+        </center>
+        <small>*<em>Puede que usted no vea todos las opciones mostradas por falta de permisos.</em></small>
+      </div>
+      <div class="col-md-5 col justify">
+        <p>Para saber mas del tema, puede visitar el manual de usuario integrado en la plataforma <strong>Miscel</strong>[App]<strong>nea Trabis</strong>.</p>
+        <a href="#">Ver manual...</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

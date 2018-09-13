@@ -1,0 +1,13 @@
+#userName{
+  background-color: #4193f2;
+  border-radius: 3px 3px;
+  margin-top: -8px;
+  color: white;
+}
+
+#logout{
+  /*background-color: #f9220e;
+  border-radius: 3px 3px;
+  margin-bottom: 8px;*/
+  color: red;
+}

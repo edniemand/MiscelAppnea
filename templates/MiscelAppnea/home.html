@@ -1,0 +1,56 @@
+{% extends "MiscelAppnea/base.html" %}
+{% load staticfiles %}
+{% block header %}
+<style media="screen">
+h1{
+  /*background-image: url("{% static 'img/trabis.jpg' %}");*/
+  opacity: .5;
+}
+.index{
+  font-size: 20pt;
+  color: gray;
+}
+.index h1{
+  font-size: 100pt;
+  color: gray;
+}
+.index p{
+  font-size: 30pt;
+  margin-left: 200px;
+}
+.index ul{
+  margin-left: 220px;
+}
+</style>
+{% endblock  %}
+
+{% load staticfiles %}
+{% block content %}
+{% if user.userprofileinfo.opc_recientes %}
+  {% include "MiscelAppnea/reciente.html" %}
+{% else %}
+  <!-- Breadcrumbs-->
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="#"><strong>Miscel</strong>[App]<strong>nea Trabis</strong></a>
+    </li>
+    <li class="breadcrumb-item active">Inicio</li>
+  </ol>
+
+  <div class="container">
+    <div class="index">
+
+      <h1>¡BIENVENIDOS!</h1>
+      <p>Todo en un solo lugar:</p>
+      <ul>
+        <li>Reportes <i class="fas fa-fw fa-file-alt"></i></li>
+        <li>Programas <i class="fas fa-fw fa-code"></i></li>
+        <li>Indicadores <i class="fas fa-fw fa-chart-pie"></i></li>
+        <li>y mas... <i class="fas fa-fw fa-surprise"></i></li>
+      </ul>
+
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

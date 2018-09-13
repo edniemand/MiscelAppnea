@@ -1,0 +1,478 @@
+{% extends 'MiscelAppnea/base.html' %}
+{% block header %}
+<style>
+/* The switch - the box around the slider */
+.switch {
+  position: absolute;
+  /*display: inline-block;*/
+  width: 64px;
+  height: 38px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 30px;
+  width: 30px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+input:checked + .slider.round {
+  background-color: #ff0000;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #ff0000;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs-->
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="{% url 'index' %}"><strong>Miscel</strong>[App]<strong>nea Trabis</strong></a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'nominas_app:nominas' %}">Nóminas</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="#">Reportes</a>
+  </li>
+  <li class="breadcrumb-item active">Bancos</li>
+</ol>
+  <!-- DataTables Example -->
+  <div class="card mb-3" id="tabla">
+    <div class="card-header">
+      <i class="fas fa-table"  title="Vista de Tabla"></i>
+      <a href="#" onclick="hideTable()" title="Vista de Gráficas"><i class="fas fa-chart-line"></i></a>
+      <strong>Bancos</strong>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <form action="{% url 'nominas_app:bancos' %}" method="post" class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
+        {% csrf_token %}
+
+        Empresa:
+        <select class="form-control" name="empresa" style="width:200px">
+          <option value="">Seleccione...</option>
+          {% for company in user.userprofileinfo.user_companies.all %}
+            <option value="{{company.company_name}}">{{company.company_name}}</option>
+          {% endfor %}
+        </select>
+        &nbsp;
+        Ejercicio:  <input type="text" name="ejercicio" class="form-control" placeholder="Ejercicio fiscal" value="{{ ejercicio }}" maxlength="4" style="width:100px" required>
+        &nbsp;
+        Periodo:  <input type="text" name="semana" class="form-control" placeholder="Número de periodo" value="{{ semana }}" maxlength="3" style="width:170px" required>
+        <label class="switch d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0" title="¿Semana actual?">
+          <input type="checkbox" name="acumulado">
+          <span class="slider"></span>
+        </label>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <label class="switch d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0" title="¿Periodo Extraordinario?">
+          <input type="checkbox" name="tipo">
+          <span class="slider round"></span>
+        </label>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> <strong>Generar</strong></button>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#printModal"><i class="fas fa-file-excel"></i> <strong>Exportar</strong></button>
+      </form>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        {% if bancos %}
+        <center>
+          <h6>Empresa: {{ empresa }}&nbsp;&nbsp;&nbsp; Semana:{{ semana }} (del {{ bancos.0.fecha_inicio }} al {{ bancos.0.fecha_fin }})&nbsp;&nbsp; Ejercicio: {{ ejercicio }}</h6>
+        </center>
+        <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre</th>
+              <th>Departamento</th>
+              <th>Cuenta</th>
+              <th>Importe</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for emp in bancos %}
+              <tr>
+                <td>{{ emp.codigoempleado }}</td>
+                <td>{{ emp.nombrelargo }}</td>
+                <td>{{ emp.depto }}</td>
+                <td>{{ emp.cuentapagoelectronico }}</td>
+                <td>{{ emp.importetotal }}</td>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <center>
+          <h2>
+            {% if mensaje != 'Exitoso!' %}
+              {{ mensaje }}
+            {% endif %}
+          </h2>
+        </center>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+  </div>
+
+  <div class="card mb-3" hidden>
+    <div class="card-header">
+      <i class="fas fa-table"></i>
+      <i class="fas fa-chart-bar"></i>
+      <strong>Consumo por departamentos</strong>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        {% if departamentos %}
+        <table class="table table-bordered" id="example" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Departamento</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dep in departamentos %}
+              <tr>
+                <td class="depto">{{ dep.depto }}</td>
+                <td class="total">{{ dep.total}}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <center>
+          <h2>No se encontraron resultados con los parametros utilizados,<br>verifiquelos e intente nuevamente!</h2>
+        </center>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+  </div>
+
+  <div class="row" id="chart" style="display:none">
+    <div class="col-lg-8">
+      <div class="card mb-3">
+        <div class="card-header">
+          <a href="#" onclick="hideTable()" title="Vista de Tabla"><i class="fas fa-table"></i></a>
+          <i class="fas fa-chart-bar"  title="Gráfica de barras"></i>
+          <a href="#" onclick="switchCharts()" title="Gráfica de pastel"><i class="fas fa-chart-pie"></i></a>
+          <strong>Gráfica de barras - Monto pagado por depto.</strong>
+        </div>
+        <div class="card-body">
+          <canvas id="myBarChart" width="100%" height="50"></canvas>
+        </div>
+        <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" id="pie" style="display:none">
+    <div class="col-lg-4">
+      <div class="card mb-3">
+        <div class="card-header">
+          <a href="#" onclick="hideTable()" title="Vista de Tabla"><i class="fas fa-table"></i></a>
+          <a href="#" onclick="switchCharts()" title="Gráfica de barras"><i class="fas fa-chart-bar"></i></a>
+          <i class="fas fa-chart-pie"  title="Gráfica de pastel"></i>
+          <strong>Gráfica de pastel - Monto pagado por depto.</strong>
+        </div>
+        <div class="card-body">
+          <canvas id="myPieChart" width="100%" height="100"></canvas>
+        </div>
+        <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="printModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Expotar Info</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          ¿Como deseas imprimir los registros seleccionados?<i class="fas fa-fw fa-file-pdf"></i><i class="fas fa-fw fa-file-excel"></i>
+          <select class="form-control" placeholder="Seleccione una empresa" name="empresa">
+              <option value="Excel">Excel</option>
+              <option value="PDF">PDF</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+          <a class="btn btn-primary text-white" onclick="tableToExcel(['dataTable'], ['Bancos'], 'Reporte de bancos.xls', 'Excel')">Imprimir</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+
+{% block script %}
+<script type="text/javascript">
+/*----------------Export info to Excel------------------*/
+/*var tableToExcel = (function() {
+  var uri = 'data:application/vnd.ms-excel;base64,'
+    , template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><meta charset = "utf-8"><head></head><body><table>{table}</table></body></html>'
+    , base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) }
+    , format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) }
+  return function(table, name) {
+    if (!table.nodeType) table = document.getElementById(table)
+    var ctx = {worksheet: name || 'Worksheet', table: table.innerHTML}
+    window.location.href = uri + base64(format(template, ctx))
+  }
+})()*/
+var tableToExcel = (function() {
+    var uri = 'data:application/vnd.ms-excel;base64,'
+    , tmplWorkbookXML = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'
+      + '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Author>Axel Richter</Author><Created>{created}</Created></DocumentProperties>'
+      + '<Styles>'
+      + '<Style ss:ID="Currency"><NumberFormat ss:Format="Currency"></NumberFormat></Style>'
+      + '<Style ss:ID="Date"><NumberFormat ss:Format="Medium Date"></NumberFormat></Style>'
+      + '</Styles>'
+      + '{worksheets}</Workbook>'
+    , tmplWorksheetXML = '<Worksheet ss:Name="{nameWS}"><Table>{rows}</Table></Worksheet>'
+    , tmplCellXML = '<Cell{attributeStyleID}{attributeFormula}><Data ss:Type="{nameType}">{data}</Data></Cell>'
+    , base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) }
+    , format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) }
+    return function(tables, wsnames, wbname, appname) {
+      var ctx = "";
+      var workbookXML = "";
+      var worksheetsXML = "";
+      var rowsXML = "";
+
+      for (var i = 0; i < tables.length; i++) {
+        if (!tables[i].nodeType) tables[i] = document.getElementById(tables[i]);
+        for (var j = 0; j < tables[i].rows.length; j++) {
+          rowsXML += '<Row>'
+          for (var k = 0; k < tables[i].rows[j].cells.length; k++) {
+            var dataType = tables[i].rows[j].cells[k].getAttribute("data-type");
+            var dataStyle = tables[i].rows[j].cells[k].getAttribute("data-style");
+            var dataValue = tables[i].rows[j].cells[k].getAttribute("data-value");
+            dataValue = (dataValue)?dataValue:tables[i].rows[j].cells[k].innerHTML;
+            var dataFormula = tables[i].rows[j].cells[k].getAttribute("data-formula");
+            dataFormula = (dataFormula)?dataFormula:(appname=='Calc' && dataType=='DateTime')?dataValue:null;
+            ctx = {  attributeStyleID: (dataStyle=='Currency' || dataStyle=='Date')?' ss:StyleID="'+dataStyle+'"':''
+                   , nameType: (dataType=='Number' || dataType=='DateTime' || dataType=='Boolean' || dataType=='Error')?dataType:'String'
+                   , data: (dataFormula)?'':dataValue
+                   , attributeFormula: (dataFormula)?' ss:Formula="'+dataFormula+'"':''
+                  };
+            rowsXML += format(tmplCellXML, ctx);
+          }
+          rowsXML += '</Row>'
+        }
+        ctx = {rows: rowsXML, nameWS: wsnames[i] || 'Sheet' + i};
+        worksheetsXML += format(tmplWorksheetXML, ctx);
+        rowsXML = "";
+      }
+
+      ctx = {created: (new Date()).getTime(), worksheets: worksheetsXML};
+      workbookXML = format(tmplWorkbookXML, ctx);
+
+console.log(workbookXML);
+
+      var link = document.createElement("A");
+      link.href = uri + base64(workbookXML);
+      link.download = wbname || 'Workbook.xls';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  })();
+
+/*----------------Detect clicks on table items(NOT IN USE)------------------*/
+
+$(document).ready(function() {
+      oTable = $('#example').dataTable();
+
+      oTable.$('td').click( function () {
+        var sData = oTable.fnGetData( this );
+        alert( 'The cell clicked on had the value of '+sData );
+      } );
+    } );
+
+/*----------------Switch between view types------------------*/
+
+function hideTable() {
+    var x = document.getElementById("tabla");
+    var y = document.getElementById("chart");
+    var z = document.getElementById("pie");
+
+    if (x.style.display === "none") {
+        x.style.display = "block";
+        y.style.display = "none";
+        z.style.display = "none";
+    } else {
+        x.style.display = "none";
+        y.style.display = "block";
+        z.style.display = "none";
+    }
+}
+
+function switchCharts() {
+    var x = document.getElementById("chart");
+    var y = document.getElementById("pie");
+
+    if (x.style.display === "none") {
+        x.style.display = "block";
+        y.style.display = "none";
+    } else {
+        x.style.display = "none";
+        y.style.display = "block";
+    }
+}
+
+/*----------------Bar Chart------------------*/
+
+// Set new default font family and font color to mimic Bootstrap's default styling
+Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.global.defaultFontColor = '#292b2c';
+
+var countData = listaDeptos();
+
+function listaDeptos() {
+  var listaDatos = [];
+  var i;
+  for (i = 0; i <= document.getElementsByClassName("depto").length -1; i++){
+    depto = document.getElementsByClassName("depto")[i].innerHTML;
+    listaDatos.push(depto);
+  }
+  //console.log(listaDatos)
+  return listaDatos
+}
+
+function listaTotales() {
+  var listaDatos = [];
+  var i;
+  for (i = 0; i <= document.getElementsByClassName("total").length -1; i++){
+    total = document.getElementsByClassName("total")[i].innerHTML;
+    listaDatos.push(total);
+  }
+  //console.log(listaDatos)
+  return listaDatos
+}
+
+
+// Bar Chart Example
+var ctx = document.getElementById("myBarChart");
+var myLineChart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: listaDeptos(),
+    datasets: [{
+      label: "Saldo",
+      backgroundColor: "rgba(2,117,216,1)",
+      borderColor: "rgba(2,117,216,1)",
+      data: listaTotales(),
+    }],
+  },
+  options: {
+    scales: {
+      xAxes: [{
+        time: {
+          unit: 'month'
+        },
+        gridLines: {
+          display: false
+        },
+        ticks: {
+          maxTicksLimit: 12
+        }
+      }],
+      yAxes: [{
+        ticks: {
+          min: 0,
+          max: 100000,
+          maxTicksLimit: 10
+        },
+        gridLines: {
+          display: true
+        }
+      }],
+    },
+    legend: {
+      display: false
+    }
+  }
+});
+
+/*--------------Pie Chart----------------*/
+
+function getRandomColor() {
+  var listaColores = [];
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var l = 0; l <= countData.length; l++) {
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    listaColores.push(color);
+    color='#';
+  }
+  return listaColores;
+}
+
+//
+var ctx2 = document.getElementById("myPieChart");
+var myPieChart = new Chart(ctx2, {
+  type: 'pie',
+  data: {
+    labels: listaDeptos(),
+    datasets: [{
+      data: listaTotales(),
+      backgroundColor: getRandomColor(),
+      /*backgroundColor: ['#007bff', '#dc3545', '#ffc107', '#28a745', '#dc3545', '#ffc107', '#28a745'],*/
+    }],
+  },
+});
+</script>
+{% endblock %}

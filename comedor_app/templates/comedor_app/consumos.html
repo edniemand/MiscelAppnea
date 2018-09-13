@@ -1,0 +1,555 @@
+{% extends 'MiscelAppnea/base.html' %}
+{% load staticfiles %}
+{% block header %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/main2.css' %}">
+<style media="screen">
+.card-body-icon{
+    margin-right: 6px;
+    margin-top: 3px;
+}
+.center_content{
+  text-align: center;
+  cursor: pointer;
+}
+.txtRed{
+  color:red;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs-->
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="{% url 'index' %}"><strong>Miscel</strong>[App]<strong>nea Trabis</strong></a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'comedor_app:comedor' %}">Comedor</a>
+  </li>
+  <li class="breadcrumb-item active">Consumos</li>
+</ol>
+  <!-- DataTables Example -->
+  <div class="card mb-3" id="tabla">
+    <div class="card-header">
+      <i class="fas fa-table"  title="Vista de Tabla"></i>
+      <a href="#" onclick="hideTable()" title="Vista de Gráficas"><i class="fas fa-chart-line"></i></a>
+      <strong>Consumo semanal de empleados</strong>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <form action="{% url 'comedor_app:consumos' %}" method="post" class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
+        {% csrf_token %}
+        Empresa:
+        <select class="form-control" name="empresa" style="width:200px">
+          <option value="">Seleccione...</option>
+          {% for company in user.userprofileinfo.user_companies.all %}
+            <option value="{{company.company_name}}">{{company.company_name}}</option>
+          {% endfor %}
+        </select>
+        &nbsp;
+        Ejercicio:  <input type="text" name="ejercicio" class="form-control" placeholder="Ejercicio fiscal" value="{{ ejercicio }}" maxlength="4" style="width:100px" required>
+        &nbsp;
+        Semana:  <input type="text" name="semana" class="form-control" placeholder="Número de semana" value="{{ semana }}" maxlength="2" style="width:170px" required>
+        &nbsp;
+        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> <strong>Generar</strong></button>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#printModal"><i class="fas fa-file-excel"></i> <strong>Exportar</strong></button>
+      </form>
+    </div>
+    <div class="card-body">
+      <div class="card-body-icon">
+        <i class="fas fa-fw fa-utensils"></i>
+      </div>
+      <div class="table-responsive">
+        {% if empleados %}
+        <center>
+          <h6>Empresa: {{ empresa }}&nbsp;&nbsp;&nbsp; Semana: {{ semana }}&nbsp;&nbsp; Ejercicio: {{ ejercicio }}</h6>
+        </center>
+        <div class="table100 ver1 m-b-110">
+          <table class="table-condensed" id="dataTable" data-vertable="ver1">
+            <thead>
+              <tr class="row100 head">
+                <th class="column100 column1" data-column="column1"><i class="fas fa-id-card"></i> Código</th>
+                <th class="column100 column2" data-column="column2"><i class="fas fa-user"></i> Nombre</th>
+                <th class="column100 column3" data-column="column3"><i class="fas fa-layer-group"></i> Departamento</th>
+                <th class="column100 column4" data-column="column4"><i class="fas fa-calendar-alt"></i> lun</th>
+                <th class="column100 column5" data-column="column5"><i class="fas fa-calendar-alt"></i> mar</th>
+                <th class="column100 column6" data-column="column6"><i class="fas fa-calendar-alt"></i> miér</th>
+                <th class="column100 column7" data-column="column7"><i class="fas fa-calendar-alt"></i> jue</th>
+                <th class="column100 column8" data-column="column8"><i class="fas fa-calendar-alt"></i> vier</th>
+                <th class="column100 column9" data-column="column9"><i class="fas fa-calendar-alt"></i> sáb</th>
+                <th class="column100 column10" data-column="column10"><i class="fas fa-calendar-alt"></i> dom</th>
+                <th class="column100 column11" data-column="column11"><i class="fas fa-chart-bar"></i> Total</th>
+              </tr>
+            </thead>
+            <tfoot>
+              <tr class="row100 head">
+                <th class="txtRed column100 column1 column2 column3" colspan="3" style="text-align:center;">T O T A L&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;S E M A N A L&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P O R&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D I A</th>
+                <th class="center_content txtRed column100 column4" id="tot_lunes">0</th>
+                <th class="center_content txtRed column100 column5" id="tot_martes">0</th>
+                <th class="center_content txtRed column100 column6" id="tot_miercoles">0</th>
+                <th class="center_content txtRed column100 column7" id="tot_jueves">0</th>
+                <th class="center_content txtRed column100 column8" id="tot_viernes">0</th>
+                <th class="center_content txtRed column100 column9" id="tot_sabado">0</th>
+                <th class="center_content txtRed column100 column10" id="tot_domingo">0</th>
+                <th class="center_content txtRed column100 column11" id="Tot_semana">0</th>
+              </tr>
+            </tfoot>
+            <tbody>
+              {% for emp in empleados %}
+                <tr class="row100">
+                  <td id="codigo-{{ emp.codigo_empleado }}" class="column100 column1" data-column="column1">{{ emp.codigo_empleado }}</td>
+                  <td id="nombre-{{ emp.codigo_empleado }}" class="column100 column2" data-column="column2">{{ emp.nombre_empleado }}</td>
+                  <td id="depto-{{ emp.codigo_empleado }}" class="column100 column3" data-column="column3">{{ emp.depto_empleado }}</td>
+                  <td class="center_content column100 column4" id="lunes-{{ emp.codigo_empleado }}" data-column="column4">
+                    {{ emp.lunes }}
+                  </td>
+                  <td class="center_content column100 column5" id="martes-{{ emp.codigo_empleado }}" data-column="column5">
+                    {{ emp.martes }}
+                  </td>
+                  <td class="center_content column100 column6" id="miercoles-{{ emp.codigo_empleado }}" data-column="column6">
+                    {{ emp.miercoles }}
+                  </td>
+                  <td class="center_content column100 column7" id="jueves-{{ emp.codigo_empleado }}" data-column="column7">
+                    {{ emp.jueves }}
+                  </td>
+                  <td class="center_content column100 column8" id="viernes-{{ emp.codigo_empleado }}" data-column="column8">
+                    {{ emp.viernes }}
+                  </td>
+                  <td class="center_content column100 column9" id="sabado-{{ emp.codigo_empleado }}" data-column="column9">
+                    {{ emp.sabado }}
+                  </td>
+                  <td class="center_content column100 column10" id="domingo-{{ emp.codigo_empleado }}" data-column="column10">
+                    {{ emp.domingo }}
+                  </td>
+                  <td class="center_content column100 column11" id="total-{{ emp.codigo_empleado }}" data-column="column11">
+                    <strong>{{ emp.total}}</strong>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <center>
+          <h2>
+            {% if mensaje != 'Exitoso!' %}
+              {{ mensaje }}
+            {% endif %}
+          </h2>
+        </center>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-footer small text-muted">última vez 11:59 PM</div>
+  </div>
+
+  <div class="card mb-3" hidden>
+    <div class="card-header">
+      <i class="fas fa-table"></i>
+      <i class="fas fa-chart-bar"></i>
+      <strong>Consumo por departamentos</strong>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        {% if departamentos %}
+        <table class="table table-bordered" id="example" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Departamento</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dep in departamentos %}
+              <tr>
+                <td class="depto">{{ dep.depto_empleado }}</td>
+                <td class="total">{{ dep.suma_depto}}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <center>
+          <h2>No se encontraron resultados con los parametros utilizados,<br>verifiquelos e intente nuevamente!</h2>
+        </center>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+  </div>
+
+  <div class="row" id="chart" style="display:none">
+    <div class="col-lg-8">
+      <div class="card mb-3">
+        <div class="card-header">
+          <a href="#" onclick="hideTable()" title="Vista de Tabla"><i class="fas fa-table"></i></a>
+          <i class="fas fa-chart-bar"  title="Gráfica de barras"></i>
+          <a href="#" onclick="switchCharts()" title="Gráfica de pastel"><i class="fas fa-chart-pie"></i></a>
+          <strong>Gráfica de barras - Consumo semanal por depto.</strong>
+        </div>
+        <div class="card-body">
+          <canvas id="myBarChart" width="100%" height="50"></canvas>
+        </div>
+        <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" id="pie" style="display:none">
+    <div class="col-lg-4">
+      <div class="card mb-3">
+        <div class="card-header">
+          <a href="#" onclick="hideTable()" title="Vista de Tabla"><i class="fas fa-table"></i></a>
+          <a href="#" onclick="switchCharts()" title="Gráfica de barras"><i class="fas fa-chart-bar"></i></a>
+          <i class="fas fa-chart-pie"  title="Gráfica de pastel"></i>
+          <strong>Gráfica de pastel - Consumo semanal por depto.</strong>
+        </div>
+        <div class="card-body">
+          <canvas id="myPieChart" width="100%" height="100"></canvas>
+        </div>
+        <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="printModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Expotar Info</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          ¿Como deseas imprimir los registros seleccionados?<i class="fas fa-fw fa-file-pdf"></i><i class="fas fa-fw fa-file-excel"></i>
+          <select class="form-control" placeholder="Seleccione una empresa" name="empresa">
+              <option value="Excel">Excel</option>
+              <option value="PDF">PDF</option>
+          </select>
+          <center>
+            <small class="text-info">*Nota: Si el reporte muestra paginación, asegurese que todos los registros se muestren en pantalla.</small>
+          </center>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+          <a class="btn btn-primary text-white" onclick="tableToExcel(['dataTable'], ['Comedor'], 'Reporte de alimentos.xls', 'Excel')">Imprimir</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+
+{% block script %}
+<script src="{% static 'js/main.js' %}"></script>
+<script type="text/javascript">
+/*----------------Export info to Excel------------------*/
+var tableToExcel = (function() {
+    var uri = 'data:application/vnd.ms-excel;base64,'
+    , tmplWorkbookXML = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'
+      + '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Author>Axel Richter</Author><Created>{created}</Created></DocumentProperties>'
+      + '<Styles>'
+      + '<Style ss:ID="Currency"><NumberFormat ss:Format="Currency"></NumberFormat></Style>'
+      + '<Style ss:ID="Date"><NumberFormat ss:Format="Medium Date"></NumberFormat></Style>'
+      + '</Styles>'
+      + '{worksheets}</Workbook>'
+    , tmplWorksheetXML = '<Worksheet ss:Name="{nameWS}"><Table>{rows}</Table></Worksheet>'
+    , tmplCellXML = '<Cell{attributeStyleID}{attributeFormula}><Data ss:Type="{nameType}">{data}</Data></Cell>'
+    , base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) }
+    , format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) }
+    return function(tables, wsnames, wbname, appname) {
+      var ctx = "";
+      var workbookXML = "";
+      var worksheetsXML = "";
+      var rowsXML = "";
+
+      for (var i = 0; i < tables.length; i++) {
+        if (!tables[i].nodeType) tables[i] = document.getElementById(tables[i]);
+        for (var j = 0; j < tables[i].rows.length; j++) {
+          rowsXML += '<Row>'
+          for (var k = 0; k < tables[i].rows[j].cells.length; k++) {
+            var dataType = tables[i].rows[j].cells[k].getAttribute("data-type");
+            var dataStyle = tables[i].rows[j].cells[k].getAttribute("data-style");
+            var dataValue = tables[i].rows[j].cells[k].getAttribute("data-value");
+            dataValue = (dataValue)?dataValue:tables[i].rows[j].cells[k].innerHTML;
+            var dataFormula = tables[i].rows[j].cells[k].getAttribute("data-formula");
+            dataFormula = (dataFormula)?dataFormula:(appname=='Calc' && dataType=='DateTime')?dataValue:null;
+            ctx = {  attributeStyleID: (dataStyle=='Currency' || dataStyle=='Date')?' ss:StyleID="'+dataStyle+'"':''
+                   , nameType: (dataType=='Number' || dataType=='DateTime' || dataType=='Boolean' || dataType=='Error')?dataType:'String'
+                   , data: (dataFormula)?'':dataValue
+                   , attributeFormula: (dataFormula)?' ss:Formula="'+dataFormula+'"':''
+                  };
+            rowsXML += format(tmplCellXML, ctx);
+          }
+          rowsXML += '</Row>'
+        }
+        ctx = {rows: rowsXML, nameWS: wsnames[i] || 'Sheet' + i};
+        worksheetsXML += format(tmplWorksheetXML, ctx);
+        rowsXML = "";
+      }
+
+      ctx = {created: (new Date()).getTime(), worksheets: worksheetsXML};
+      workbookXML = format(tmplWorkbookXML, ctx);
+
+      //console.log(workbookXML);
+
+      var link = document.createElement("A");
+      link.href = uri + base64(workbookXML);
+      link.download = wbname || 'Workbook.xls';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  })();
+
+/*----------------Detect clicks on table items(para sumar/restar comidas, obtener totales de empleado y del día)------------------*/
+
+function changeColor(element,color) {
+        element.style.color = color;
+        element.style.fontWeight = "bold";
+        return false;
+}
+
+$(document).ready(function() {
+
+  oTable = $('#dataTable').dataTable();
+  oTable.$('td').click(function(e) {
+    //obtener el valor de la celda y sumar uno
+    if (this.id.split('-')[0] != 'codigo' && this.id.split('-')[0] != 'nombre' && this.id.split('-')[0] != 'depto' && this.id.split('-')[0] != 'total') {
+      var sData = parseInt(this.innerHTML);
+      changeColor(this,'purple');
+
+      //Detecta click derecho del mouse
+      $(this).mousedown(function(event) {
+        if (window.event.button == 2 && (sData == 2 || sData == 1)) {
+          sData -= 1;
+          $(this).html(sData);
+
+          //Función para obtener el total del día
+          totalDia(this);
+
+          //obtener valores del registro a modificar
+          var id = $(this).attr('id');
+          id = id.split('-')[1]
+          rowInfo(id);
+        }
+      });
+
+      //Detecta click izquierdo del mouse
+      console.log(window.event.button);
+      if (window.event.button == 0 && (sData == 0 || sData == 1)) {
+        sData += 1;
+        $(this).html(sData);
+
+        //Función para obtener el total del día
+        totalDia(this);
+
+        //obtener valores del registro a modificar
+        var id = $(this).attr('id');
+        id = id.split('-')[1]
+        rowInfo(id);
+      }
+
+    }
+  });
+  //Que no muestre el menu contextual al dar click derecho en el mouse
+  window.oncontextmenu = function (e) {
+    return false;     // cancel default menu
+  }
+});
+
+function rowInfo(id) {$("tr").each(function() {
+  var empleado = []
+  var codigo = $(this).find('#codigo-'+id).text();
+  var nombre = $(this).find('#nombre-'+id).text();
+  var depto = $(this).find('#depto-'+id).text();
+  var lunes = $(this).find('#lunes-'+id).text();
+  var martes = $(this).find('#martes-'+id).text();
+  var miercoles = $(this).find('#miercoles-'+id).text();
+  var jueves = $(this).find('#jueves-'+id).text();
+  var viernes = $(this).find('#viernes-'+id).text();
+  var sabado = $(this).find('#sabado-'+id).text();
+  var domingo = $(this).find('#domingo-'+id).text();
+  var total = $(this).find('#total-'+id).text();
+  if (codigo != ''){
+    empleado.push(
+      {'codigo' : codigo,
+      'nombre' : nombre,
+      'depto' : depto,
+      'lunes' : lunes,
+      'martes' : martes,
+      'miercoles' : miercoles,
+      'jueves' : jueves,
+      'viernes' : viernes,
+      'sabado' : sabado,
+      'domingo' : domingo,
+      'total' : total}
+    )
+
+    //Función para obtener el total del empleado (el parametro que se le envía es el row modificado)
+    totalEmpleado(this);
+  }
+});
+}
+
+
+function totalEmpleado(row){
+  var tdElements = row.getElementsByTagName('td');
+  suma = 0;
+  for (var i = 3; i <= tdElements.length -2; i++) {
+    suma += parseInt(tdElements[i].innerHTML);
+  }
+  tdElements[10].innerHTML = suma;
+  changeColor(tdElements[10],"red")
+}
+
+function totalDia(column){
+  dtElement = $('#dataTable').dataTable();
+  suma = 0;
+  for (var i = 0; i<=   dtElement.$('tr').length -1; i++) {
+    for (var j = 3; j < dtElement.$('tr')[i].cells.length; j++) {
+      if (dtElement.$('tr')[i].cells[j].id.split('-')[0]==column.id.split('-')[0]) {
+        suma += parseInt(dtElement.$('tr')[i].cells[j].innerHTML);
+      }
+    }
+  }
+  document.getElementById('tot_'+column.id.split('-')[0]).innerHTML = suma;
+}
+
+/*----------------Switch between view types------------------*/
+
+function hideTable() {
+    var x = document.getElementById("tabla");
+    var y = document.getElementById("chart");
+    var z = document.getElementById("pie");
+
+    if (x.style.display === "none") {
+        x.style.display = "block";
+        y.style.display = "none";
+        z.style.display = "none";
+    } else {
+        x.style.display = "none";
+        y.style.display = "block";
+        z.style.display = "none";
+    }
+}
+
+function switchCharts() {
+    var x = document.getElementById("chart");
+    var y = document.getElementById("pie");
+
+    if (x.style.display === "none") {
+        x.style.display = "block";
+        y.style.display = "none";
+    } else {
+        x.style.display = "none";
+        y.style.display = "block";
+    }
+}
+
+/*----------------Bar Chart------------------*/
+
+// Set new default font family and font color to mimic Bootstrap's default styling
+Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.global.defaultFontColor = '#292b2c';
+
+var countData = listaDeptos();
+
+function listaDeptos() {
+  var listaDatos = [];
+  var i;
+  for (i = 0; i <= document.getElementsByClassName("depto").length -1; i++){
+    depto = document.getElementsByClassName("depto")[i].innerHTML;
+    listaDatos.push(depto);
+  }
+  //console.log(listaDatos)
+  return listaDatos
+}
+
+function listaTotales() {
+  var listaDatos = [];
+  var i;
+  for (i = 0; i <= document.getElementsByClassName("total").length -1; i++){
+    total = document.getElementsByClassName("total")[i].innerHTML;
+    listaDatos.push(total);
+  }
+  //console.log(listaDatos)
+  return listaDatos
+}
+
+
+// Bar Chart Example
+var ctx = document.getElementById("myBarChart");
+var myLineChart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: listaDeptos(),
+    datasets: [{
+      label: "Saldo",
+      backgroundColor: "rgba(2,117,216,1)",
+      borderColor: "rgba(2,117,216,1)",
+      data: listaTotales(),
+    }],
+  },
+  options: {
+    scales: {
+      xAxes: [{
+        time: {
+          unit: 'month'
+        },
+        gridLines: {
+          display: false
+        },
+        ticks: {
+          maxTicksLimit: 12
+        }
+      }],
+      yAxes: [{
+        ticks: {
+          min: 0,
+          max: 100,
+          maxTicksLimit: 10
+        },
+        gridLines: {
+          display: true
+        }
+      }],
+    },
+    legend: {
+      display: false
+    }
+  }
+});
+
+/*--------------Pie Chart----------------*/
+
+function getRandomColor() {
+  var listaColores = [];
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var l = 0; l <= countData.length; l++) {
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    listaColores.push(color);
+    color='#';
+  }
+  return listaColores;
+}
+
+//
+var ctx2 = document.getElementById("myPieChart");
+var myPieChart = new Chart(ctx2, {
+  type: 'pie',
+  data: {
+    labels: listaDeptos(),
+    datasets: [{
+      data: listaTotales(),
+      backgroundColor: getRandomColor(),
+      /*backgroundColor: ['#007bff', '#dc3545', '#ffc107', '#28a745', '#dc3545', '#ffc107', '#28a745'],*/
+    }],
+  },
+});
+</script>
+{% endblock %}

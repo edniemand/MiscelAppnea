@@ -1,0 +1,149 @@
+{% extends "MiscelAppnea/base.html" %}
+{% block header %}
+<style media="screen">
+.jumbotron{
+  border-top: 15px solid gray;
+}
+  .desc{
+    color: gray;
+  }
+  input{
+    padding: 4px 10px 4px 10px;
+    font-size: 18pt;
+    font-weight:600;
+    background-color: #fafafa;
+    border-radius: 5px 5px;
+    width:inherit;
+  }
+  .val{
+    padding: 5px 10px 5px 10px;
+    background-color: #fafafa;
+    border-radius: 5px 5px;
+  }
+  .bloc{
+    background-color: #ccc;
+    color: white;
+  }
+  /* The switch - the box around the slider */
+  .switch {
+    position: relative;
+    width: 64px;
+    height: 38px;
+  }
+
+  /* Hide default HTML checkbox */
+  .switch input {display:none;}
+
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 30px;
+    width: 30px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="#"><strong>Miscel</strong>[App]<strong>nea Trabis</strong></a>
+  </li>
+  <li class="breadcrumb-item active">Perfíl de usuario</li>
+</ol>
+<div class="container">
+  <div class="jumbotron">
+    <div class="row">
+      <div class="col-md-8">
+        <h5 class="desc">Nombre</h5>
+        <input class="val" type="text" name="" value="{{ user.get_full_name }}">
+        <!--h3 class="val">{{ user.get_full_name }}</h3-->
+        <hr>
+        <div class="row">
+          <div class="col-md-6">
+            <h5 class="desc">Usuario</h5>
+            <h3 class="val bloc">{{ user.username}}</h3>
+          </div>
+          <div class="col-md-6">
+            <h5 class="desc">Contraseña</h5>
+            <h3 class="val bloc">*********</h3>
+            <a href="#">Cambiar contraseña</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <h5 class="desc">Mostrar recientes al iniciar sesión</h5>
+        <label class="switch" title="Si marca esta opción, no verá la página de inicio">
+          <input type="checkbox" name="acumulado">
+          <span class="slider"></span>
+        </label>
+        <hr>
+        <h5 class="desc">Notificaciones</h5>
+        <label class="switch" title="Activar/Desactivar notificaciones">
+          <input type="checkbox" name="acumulado">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <hr>
+      <div class="col-md-8">
+        <h5 class="desc">Correo electrónico</h5>
+        <input class="val" type="text" name="" value="{{ user.email }}">
+      </div>
+
+    </div>
+    <!--hr>
+    <h5 class="desc">Correo electrónico</h5>
+    <input class="val" type="text" name="" value="{{ user.email }}"-->
+    <br>
+    <span class="float-right">
+      <button class="btn btn-success" data-toggle="modal" data-target="#addModal">
+        <i class="fas fa-save"></i>
+        <strong>Guardar</strong>
+      </button>
+    </span>
+
+
+  </div>
+</div>
+{% endblock %}

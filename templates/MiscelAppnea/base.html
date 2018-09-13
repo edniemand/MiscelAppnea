@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+{% block bootstrap3_extra_head %}
+    <link rel="icon" href="{% static 'img/trabis.ico' %}">
+{% endblock %}
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta http-equiv="content-type" content="text/plain; charset=UTF-8"/>
+
+    <title>Miscel[App]nea Trabis</title>
+
+    <!-- Bootstrap core CSS-->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Custom fonts for this template-->
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+
+    <!-- Page level plugin CSS-->
+    <link href="{% static 'vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="{% static 'css/sb-admin.css' %}" rel="stylesheet">
+    <link href="{% static 'css/comedor.css' %}" rel="stylesheet">
+    {% block header %}
+    {% endblock %}
+  </head>
+
+  <body id="page-top">
+
+    <nav class="navbar navbar-expand navbar-dark bg-dark static-top">
+
+      <a class="navbar-brand mr-1" href="{% url 'index' %}"><strong>Miscel</strong>[App]<strong>nea Trabis</strong></a>
+
+      <button class="btn btn-link btn-sm text-white order-1 order-sm-0" id="sidebarToggle" href="#">
+        <i class="fas fa-bars"></i><!--img src="{% static 'vendor/fontawesome-free/pngs/bars.png' %}"  height="16" width="32"></img-->
+      </button>
+
+      <!-- Navbar Search -->
+      <form class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Buscar..." aria-label="Search" aria-describedby="basic-addon2">
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="button">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Navbar -->
+      <!--Notifications-->
+
+      <ul class="navbar-nav ml-auto ml-md-0">
+        {% if user.userprofileinfo.opc_notificaciones %}
+        <li class="nav-item dropdown no-arrow mx-1">
+          <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-bell fa-fw"></i>
+            <span class="badge badge-danger">9+</span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="alertsDropdown">
+            <a class="dropdown-item" href="#">Action</a>
+            <a class="dropdown-item" href="#">Another action</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">Something else here</a>
+          </div>
+          {% endif %}
+        </li>
+        <!--Messages-->
+        <!--li class="nav-item dropdown no-arrow mx-1">
+          <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-envelope fa-fw"></i>
+            <span class="badge badge-danger">7</span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="messagesDropdown">
+            <a class="dropdown-item" href="#">Action</a>
+            <a class="dropdown-item" href="#">Another action</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">Something else here</a>
+          </div>
+        </li-->
+
+        <!--Logged User-->
+        <li class="nav-item dropdown no-arrow glyphicon glyphicon-user">
+          <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{ user.get_full_name }} <i class="fas fa-user-circle fa-fw"></i>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+            {% if user.is_authenticated %}
+              <a id="userName" class="dropdown-item" href="{% url 'usuarios_app:perfil' pk=user.userprofileinfo.pk %}">Perfíl</a>
+              <!--a class="dropdown-item" href="{% url 'reciente' %}">Reciente</a-->
+              <div class="dropdown-divider"></div>
+              <a id="logout" class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">Salir</a>
+            {% else %}
+              <a class="dropdown-item" href="{% url 'login' %}">Login</a>
+            {% endif %}
+          </div>
+        </li>
+      </ul>
+
+    </nav>
+
+    <div id="wrapper">
+
+      <!-- Sidebar -->
+      <ul class="sidebar navbar-nav">
+
+        {% if user.userprofileinfo.indicadores %}
+        <li class="nav-item active">
+          <a class="nav-link" href="{% url 'home' %}">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Indicadores</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% for app in user.userprofileinfo.user_apps.all %}
+
+          {% if app.app_name == 'comedor' %}
+          <li class="nav-item dropdown" {{app.value}}>
+            <a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-fw fa-folder"></i>
+              <span>Comedor</span>
+            </a>
+            <div class="dropdown-menu" aria-labelledby="pagesDropdown">
+              <h6 class="dropdown-header">Comedor Trabis:</h6>
+              {% for item in app.user_menus.all %}
+                {% if item.menu_name == 'consumos' %}
+                  <a class="dropdown-item" href="{% url 'comedor_app:consumos' %}"  {{item.value}}><i class="fas fa-fw fa-utensils"></i> Consumos</a>
+                {% endif %}
+                {% if item.menu_name == 'listas' %}
+                  <a class="dropdown-item" href="{% url 'comedor_app:listas' %}"  {{item.value}}><i class="fas fa-fw fa-id-card"></i> Generar listas</a>
+                {% endif %}
+                {% if item.menu_name == 'opciones' %}
+                  <a class="dropdown-item" href="{% url 'comedor_app:opciones' %}"  {{item.value}}><i class="fas fa-fw fa-apple-alt"></i> Opciones</a>
+                {% endif %}
+                {% if item.menu_name == 'menu' %}
+                  <a class="dropdown-item" href="#"  {{item.value}}><i class="fas fa-fw fa-folder-open"></i> Menú</a>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </li>
+          {% endif %}
+
+          {% if app.app_name == 'nominas' %}
+          <li class="nav-item dropdown" {{app.value}}>
+            <a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-fw fa-folder"></i>
+              <span>Nóminas</span>
+            </a>
+            <div class="dropdown-menu" aria-labelledby="pagesDropdown">
+              <h6 class="dropdown-header">Reportes:</h6>
+              {% for item in app.user_menus.all %}
+                {% if item.menu_name == 'acumulados' %}
+                  <a class="dropdown-item" href="{% url 'nominas_app:acumulados' %}"><i class="fas fa-fw fa-align-justify"></i> Acumulados</a>
+                {% endif %}
+                {% if item.menu_name == 'alimentos' %}
+                  <a class="dropdown-item" href="{% url 'nominas_app:alimentos' %}"><i class="fas fa-fw fa-utensils"></i> Alimentos</a>
+                {% endif %}
+                {% if item.menu_name == 'bancos' %}
+                  <a class="dropdown-item" href="{% url 'nominas_app:bancos' %}"><i class="fas fa-fw fa-money-check-alt"></i> Bancos</a>
+                {% endif %}
+                {% if item.menu_name == 'dispersion' %}
+                  <a class="dropdown-item" href="{% url 'nominas_app:dispersion' %}"><i class="fas fa-fw fa-boxes"></i> Dispersión</a>
+                {% endif %}
+                {% if item.menu_name == 'factura' %}
+                  <a class="dropdown-item" href="{% url 'nominas_app:factura' %}"><i class="fas fa-fw fa-file-invoice-dollar"></i> Factura</a>
+                {% endif %}
+                {% if item.menu_name == 'fondo' %}
+                  <a class="dropdown-item" href="{% url 'nominas_app:fondo_ahorro' %}"><i class="fas fa-fw fa-piggy-bank"></i> Fondo de ahorro</a>
+                {% endif %}
+                {% if item.menu_name == 'promobien' %}
+                  <a class="dropdown-item" href="{% url 'nominas_app:promobien' %}"><i class="fas fa-fw fa-file-alt"></i> Promobien</a>
+                {% endif %}
+                {% if item.menu_name == 'asistencia' %}
+                  <a class="dropdown-item" href="{% url 'nominas_app:asistencia' %}"><i class="fas fa-fw fa-user-check"></i> Asistencia</a>
+                {% endif %}
+                {% if item.menu_name == 'hextra' %}
+                  <a class="dropdown-item" href="#"><i class="fas fa-fw fa-user-clock"></i> Horas extra</a>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </li>
+          {% endif %}
+
+          {% if app.app_name == 'configuracion' %}
+          <li class="nav-item dropdown" {{app.value}}>
+            <a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-fw fa-folder"></i>
+              <span>Configuración</span>
+            </a>
+            <div class="dropdown-menu" aria-labelledby="pagesDropdown">
+              <h6 class="dropdown-header">Sistema:</h6>
+              {% for item in app.user_menus.all %}
+                {% if item.menu_name == 'admin' %}
+                  <a class="dropdown-item" href="admin"><i class="fas fa-fw fa-user-alt"></i> Admin</a>
+                {% endif %}
+              {% endfor %}
+
+              <!--a class="dropdown-item" href="{% url 'usuarios_app:usuarios' %}"><i class="fas fa-fw fa-user"></i> Usuarios</a>
+              <a class="dropdown-item" href="#"><i class="fas fa-fw fa-id-card"></i> Permisos</a>
+              <div class="dropdown-divider"></div>
+              <h6 class="dropdown-header">Other Pages:</h6>
+              <a class="dropdown-item" href="#">404 Page</a>
+              <a class="dropdown-item" href="#">Blank Page</a-->
+            </div>
+          </li>
+          {% endif %}
+
+        {% endfor %}
+          <!--div class="dropdown-menu" aria-labelledby="pagesDropdown">
+            <h6 class="dropdown-header">Login Screens:</h6>
+            <a class="dropdown-item" href="{% url 'login' %}">Login</a>
+            <a class="dropdown-item" href="{% url 'registration' %}">Register</a>
+            <a class="dropdown-item" href="#">Forgot Password</a>
+            <div class="dropdown-divider"></div>
+            <h6 class="dropdown-header">Other Pages:</h6>
+            <a class="dropdown-item" href="#">404 Page</a>
+            <a class="dropdown-item" href="#">Blank Page</a>
+          </div-->
+
+      </ul>
+
+      <div id="content-wrapper">
+
+        <div class="container-fluid">
+
+          {% block content %}
+
+          {% endblock %}
+
+        <!-- Sticky Footer -->
+        <footer class="sticky-footer">
+          <div class="container my-auto">
+            <div class="copyright text-center my-auto">
+              <span>Copyright © Sistemas Trabis 2018</span>
+            </div>
+          </div>
+        </footer>
+
+      </div>
+      <!-- /.content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+      <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">¿Listo para salir?</h5>
+            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">Selecciona "Salir" abajo si estás listo para terminar la sesión actual.</div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+            <a class="btn btn-danger" href="{% url 'logout' %}">Salir</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+
+    <!-- Page level plugin JavaScript-->
+    <script src="{% static 'vendor/chart.js/Chart.min.js' %}"></script>
+    <script src="{% static 'vendor/datatables/jquery.dataTables.js' %}"></script>
+    <script src="{% static 'vendor/datatables/dataTables.bootstrap4.js' %}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{% static 'js/sb-admin.min.js' %}"></script>
+
+    <!-- Demo scripts for this page-->
+    <script src="{% static 'js/demo/datatables-demo.js' %}"></script>
+    <!--script src="{% static 'js/demo/chart-area-demo.js' %}"></script>
+    <script src="{% static 'js/demo/chart-bar-demo.js' %}"></script>
+    <script src="{% static 'js/demo/chart-pie-demo.js' %}"></script-->
+
+
+    {% block script %}
+    {% endblock %}
+
+  </body>
+
+</html>

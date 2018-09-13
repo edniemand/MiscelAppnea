@@ -1,0 +1,60 @@
+{% if empleado %}
+<h4>{{ empleado.0 }}</h4>
+<h5>Consumo semanal</h5>
+  <table class="table">
+      <thead>
+        <tr>
+          <th>lunes</th>
+          <th>martes</th>
+          <th>miércoles</th>
+          <th>jueves</th>
+          <th>viernes</th>
+          <th>sábado</th>
+          <th>domingo</th>
+          <th>total</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for emp in empleado %}
+        <tr>
+          <td>{{ emp.lunes }}</td>
+          <td>{{ emp.martes }}</td>
+          <td>{{ emp.miercoles }}</td>
+          <td>{{ emp.jueves }}</td>
+          <td>{{ emp.viernes }}</td>
+          <td>{{ emp.sabado }}</td>
+          <td>{{ emp.domingo }}</td>
+          <td>{{ emp.total }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+  </table>
+{% else %}
+  <h5>
+    {{ mensaje }}
+  </h5>
+{% endif %}
+
+{% if opcion %}
+<h5>Opciones solicitados por el empleado</h5>
+<table class="table">
+  {% for op in opcion %}
+    <thead>
+      <tr>
+        <th>Día</th>
+        <th>Opción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ op.dia }}</td>
+        <td>{{ op.comida }}</td>
+      </tr>
+    </tbody>
+  {% endfor %}
+</table>
+{% else %}
+  <h5>
+    {{ mensaje }}
+  </h5>
+{% endif %}

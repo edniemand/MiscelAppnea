@@ -1,0 +1,35 @@
+{% extends "MiscelAppnea/base.html" %}
+{% load staticfiles %}
+{% block header %}
+<style media="screen">
+  .justify{
+    text-align: justify;
+  }
+  .col{
+    padding-top: 10px;
+    border-top: 10px solid red;
+    margin-right: 15px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h1>Bienvenidos a la [App] Comedor</h1>
+    <h6>La App <strong>Comedor</strong> de Trabis, tiene como principal función llevar el control del consumo de alimentos por empleados.</h6>
+    <br>
+    <div class="row">
+      <div class="col-md-3 justify col">
+        <p>
+          Para ello, cuenta con <strong>3 submenús</strong> que nos permiten importar la lista de empleados (Generar listas), realizar pedidos de alimento por día (Consumos), pedir una opción alterna al alimento ofertado
+          cierto día (Opciones), y hacer el cargo/descuento directamente en la base de datos de Nóminas.
+        </p>
+      </div>
+      <div class="col-md-3 col">
+        <center>
+          <img src="{% static 'img/comedor.jpg' %}" alt="">
+        </center>
+      </div>
+    </div>
+  </div>
+{% endblock %}

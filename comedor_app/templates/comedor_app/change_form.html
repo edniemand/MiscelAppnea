@@ -1,0 +1,6 @@
+<option value="">---------</option>
+<!--option value="">uno</option>
+<option value="">dos</option-->
+{% for emp in empleados %}
+<option value="{{ emp.pk }}">{{ emp.nombre_empleado }}</option>
+{% endfor %}

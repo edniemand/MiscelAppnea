@@ -1,0 +1,428 @@
+{% extends 'MiscelAppnea/base.html' %}
+{% block header %}
+<style>
+.pieChart{
+  padding-left: 15px;
+}
+/* The switch - the box around the slider */
+.switch {
+  position: absolute;
+  /*display: inline-block;*/
+  width: 64px;
+  height: 38px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 30px;
+  width: 30px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+input:checked + .slider.round {
+  background-color: #ff0000;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #ff0000;
+}
+.number{
+  text-align: right;
+  padding-right: 10px;
+}
+/*---------------------*/
+td,th {
+white-space: nowrap;
+}
+.headcol-top {
+position:sticky;
+width: 260px;
+left: 0;
+top: auto;
+font-weight: bold;
+margin-left: 5px;
+background-color: #0147b7;
+padding-left: 10px;
+padding-right: 10px;
+border-right: 5px solid #468cfc;
+border-top-left-radius: 10px;
+border-top-right-radius: 10px;
+color: white;
+}
+.headcol {
+position:sticky;
+width: 260px;
+left: 0;
+top: auto;
+font-weight: bold;
+margin-left: 5px;
+background-color: #0147b7;
+padding-left: 10px;
+padding-right: 10px;
+border-right: 5px solid #468cfc;
+color: white;
+}
+
+.col-percepciones-top {
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: green;
+  color:white;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.col-percepciones {
+  background-color: green;
+  color:white;
+}
+
+.col-deducciones-top {
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: red;
+  color:white;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.col-deducciones {
+  background-color: red;
+  color:white;
+}
+
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+  background-color: gray;
+  color:white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs-->
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="{% url 'index' %}"><strong>Miscel</strong>[App]<strong>nea Trabis</strong></a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'nominas_app:nominas' %}">Nóminas</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="#">Reportes</a>
+  </li>
+  <li class="breadcrumb-item active">Acumulados</li>
+</ol>
+  <!-- DataTables Example -->
+  <div class="card mb-3" id="tabla">
+    <div class="card-header">
+      <i class="fas fa-table"  title="Vista de Tabla"></i>
+      <strong>Acumulados</strong>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <form action="{% url 'nominas_app:acumulados' %}" method="post" class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
+        {% csrf_token %}
+
+        Empresa:
+        <select class="form-control" name="empresa" style="width:200px">
+          <option value="">Seleccione...</option>
+          {% for company in user.userprofileinfo.user_companies.all %}
+            <option value="{{company.company_name}}">{{company.company_name}}</option>
+          {% endfor %}
+        </select>
+        &nbsp;
+        Ejercicio:  <input type="text" name="ejercicio" class="form-control" placeholder="Ejercicio fiscal" value="{{ ejercicio }}" maxlength="4" style="width:100px" required>
+        &nbsp;
+        Periodo:  <input type="text" name="semana" class="form-control" placeholder="Número de periodo" value="{{ semana }}" maxlength="3" style="width:170px" required>
+        <label class="switch d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0" title="¿Semana actual?">
+          <input type="checkbox" name="acumulado">
+          <span class="slider"></span>
+        </label>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> <strong>Generar</strong></button>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#printModal"><i class="fas fa-file-excel"></i> <strong>Exportar</strong></button>
+      </form>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        {% if acumulado %}
+        <center>
+          <h6>Empresa: {{ empresa }}&nbsp;&nbsp;&nbsp; Semana:{{ semana }} (del {{ acumulado.0.fecha_inicio }} al {{ acumulado.0.fecha_fin }})&nbsp;&nbsp; Ejercicio: {{ ejercicio }}</h6>
+        </center>
+        <table class="table-striped table-hover" id="dataTable2">
+          <thead>
+            <tr>
+              <th style="text-align:center;" class="headcol-top">Empleado</th>
+              <th style="text-align:center;">Núm.</th>
+              <th style="text-align:center;" width="100px">Cuenta</th>
+              <th style="text-align:center;" width="200px">Depto.</th>
+              <th style="text-align:center;">Sueldo</th>
+              <th style="text-align:center;">Sept. día</th>
+              <th style="text-align:center;">Día fest./Descanso</th>
+              <th style="text-align:center;">Bono punt.</th>
+              <th style="text-align:center;">Bono asis.</th>
+              <th style="text-align:center;">Vales desp.</th>
+              <th style="text-align:center;">F.A. Empr.</th>
+              <th style="text-align:center;">Prest. F.A.</th>
+              <th style="text-align:center;">Subsidio incap.</th>
+              <th style="text-align:center;">Vac. a tiempo</th>
+              <th style="text-align:center;">Prima vac.</th>
+              <th style="text-align:center;">Aguinaldo</th>
+              <th style="text-align:center;">Gratificación</th>
+              <th style="text-align:center;">Indemnización</th>
+              <th style="text-align:center;">Prima antig.</th>
+              <th style="text-align:center;">Horas extra</th>
+              <th style="text-align:center;">Bono SOL</th>
+              <th style="text-align:center;">Reparto util.</th>
+              <th class="col-percepciones-top">Total percep.</th>
+              <th style="text-align:center;">Alimentos</th>
+              <th style="text-align:center;">Infonavit CF</th>
+              <th style="text-align:center;">Infonavit %</th>
+              <th style="text-align:center;">F.A. Empr.</th>
+              <th style="text-align:center;">F.A. Empl.</th>
+              <th style="text-align:center;">Descto. F.A.</th>
+              <th style="text-align:center;">IMSS</th>
+              <th style="text-align:center;">ISR Art. 42</th>
+              <th style="text-align:center;">ISR sp</th>
+              <th style="text-align:center;">Subsidio al empl.</th>
+              <th style="text-align:center;">Desc. diversos</th>
+              <th style="text-align:center;">Prestamo F.A.</th>
+              <th style="text-align:center;">FONACOT</th>
+              <th style="text-align:center;">FONACOT1</th>
+              <th style="text-align:center;">FONACOT2</th>
+              <th style="text-align:center;">FONACOT3</th>
+              <th style="text-align:center;">FONACOT4</th>
+              <th style="text-align:center;">FONACOT5</th>
+              <th style="text-align:center;">FONACOT6</th>
+              <th style="text-align:center;">FONACOT7</th>
+              <th style="text-align:center;">FONACOT8</th>
+              <th style="text-align:center;">FONACOT9</th>
+              <th style="text-align:center;">PROMOBIEN</th>
+              <th style="text-align:center;">PROMOBIEN1</th>
+              <th style="text-align:center;">PROMOBIEN2</th>
+              <th style="text-align:center;">PROMOBIEN3</th>
+              <th style="text-align:center;">PROMOBIEN4</th>
+              <th style="text-align:center;">PROMOBIEN5</th>
+              <th style="text-align:center;">Infonavit importe</th>
+              <th style="text-align:center;">ISR finiquito</th>
+              <th style="text-align:center;">ISR retener</th>
+              <th style="text-align:center;">ISR compensar</th>
+              <th style="text-align:center;">Descto. prestamo</th>
+              <th class="col-deducciones-top">Total deduc.</th>
+              <th style="text-align:center;">Bancos</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for emp in acumulado %}
+              <tr>
+                <td class="headcol">{{ emp.empleado }}</td>
+                <td class="number">{{ emp.numero }}</td>
+                <td>{{ emp.cuenta }}</td>
+                <td>{{ emp.departamento }}</td>
+                <td class="number">{{ emp.sueldo}}</td>
+                <td class="number">{{ emp.septimo_dia}}</td>
+                <td class="number">{{ emp.dia_festivo_descanso }}</td>
+                <td class="number">{{ emp.bono_puntualidad }}</td>
+                <td class="number">{{ emp.bono_asistencia }}</td>
+                <td class="number">{{ emp.vales_despensa }}</td>
+                <td class="number">{{ emp.fa_empresa }}</td>
+                <td class="number">{{ emp.prestamo_fa }}</td>
+                <td class="number">{{ emp.subsidio_incapacidad }}</td>
+                <td class="number">{{ emp.vacaciones_a_tiempo }}</td>
+                <td class="number">{{ emp.prima_vacaciones }}</td>
+                <td class="number">{{ emp.aguinaldo }}</td>
+                <td class="number">{{ emp.gratificacion }}</td>
+                <td class="number">{{ emp.indemnizacion }}</td>
+                <td class="number">{{ emp.prima_antiguedad }}</td>
+                <td class="number">{{ emp.horas_extra }}</td>
+                <td class="number">{{ emp.bono_sol }}</td>
+                <td class="number">{{ emp.reparto_utilidades }}</td>
+                <td class="number col-percepciones">{{ emp.total_percepciones }}</td>
+                <td class="number">{{ emp.alimentos }}</td>
+                <td class="number">{{ emp.infonavit_cf }}</td>
+                <td class="number">{{ emp.infonavit_porciento }}</td>
+                <td class="number">{{ emp.fondo_ahorro_empresa }}</td>
+                <td class="number">{{ emp.fondo_ahorro_empleado }}</td>
+                <td class="number">{{ emp.descto_fondo_ahorro }}</td>
+                <td class="number">{{ emp.imss }}</td>
+                <td class="number">{{ emp.isr_art_42 }}</td>
+                <td class="number">{{ emp.isr_sp }}</td>
+                <td class="number">{{ emp.subsidio_al_empleo }}</td>
+                <td class="number">{{ emp.desctos_diversos }}</td>
+                <td class="number">{{ emp.prestamo_fondo_ahorro }}</td>
+                <td class="number">{{ emp.fonacot }}</td>
+                <td class="number">{{ emp.fonacot1 }}</td>
+                <td class="number">{{ emp.fonacot2 }}</td>
+                <td class="number">{{ emp.fonacot3 }}</td>
+                <td class="number">{{ emp.fonacot4 }}</td>
+                <td class="number">{{ emp.fonacot5 }}</td>
+                <td class="number">{{ emp.fonacot6 }}</td>
+                <td class="number">{{ emp.fonacot7 }}</td>
+                <td class="number">{{ emp.fonacot8 }}</td>
+                <td class="number">{{ emp.fonacot9 }}</td>
+                <td class="number">{{ emp.promobien }}</td>
+                <td class="number">{{ emp.promobien1 }}</td>
+                <td class="number">{{ emp.promobien2 }}</td>
+                <td class="number">{{ emp.promobien3 }}</td>
+                <td class="number">{{ emp.promobien4 }}</td>
+                <td class="number">{{ emp.promobien5 }}</td>
+                <td class="number">{{ emp.infonavit_importe }}</td>
+                <td class="number">{{ emp.isr_finiquito }}</td>
+                <td class="number">{{ emp.isr_retener }}</td>
+                <td class="number">{{ emp.isr_compensar }}</td>
+                <td class="number">{{ emp.descto_prestamo }}</td>
+                <td class="number col-deducciones">{{ emp.total_deducciones }}</td>
+                <td class="number">{{ emp.bancos }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <center>
+          {% if mensaje != 'Exitoso!' %}
+              <h2>{{ mensaje }}</h2>
+          {% endif %}
+        </center>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+  </div>
+
+  <div class="modal fade" id="printModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Expotar Info</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          ¿Como deseas imprimir los registros seleccionados?<i class="fas fa-fw fa-file-pdf"></i><i class="fas fa-fw fa-file-excel"></i>
+          <select class="form-control" placeholder="Seleccione una empresa" name="empresa">
+              <option value="Excel">Excel</option>
+              <option value="PDF">PDF</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+          <a class="btn btn-primary text-white" onclick="tableToExcel(['dataTable'], ['Acumulados'], 'Reporte de Acumulados.xls', 'Excel')">Imprimir</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+
+{% block script %}
+<script type="text/javascript">
+
+  $('#dataTable2').DataTable({
+    "scrollX": true
+  });
+  $('.dataTables_length').addClass('bs-select');
+
+/*----------------Export info to Excel------------------*/
+var tableToExcel = (function() {
+    var uri = 'data:application/vnd.ms-excel;base64,'
+    , tmplWorkbookXML = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'
+      + '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Author>Axel Richter</Author><Created>{created}</Created></DocumentProperties>'
+      + '<Styles>'
+      + '<Style ss:ID="Currency"><NumberFormat ss:Format="Currency"></NumberFormat></Style>'
+      + '<Style ss:ID="Date"><NumberFormat ss:Format="Medium Date"></NumberFormat></Style>'
+      + '</Styles>'
+      + '{worksheets}</Workbook>'
+    , tmplWorksheetXML = '<Worksheet ss:Name="{nameWS}"><Table>{rows}</Table></Worksheet>'
+    , tmplCellXML = '<Cell{attributeStyleID}{attributeFormula}><Data ss:Type="{nameType}">{data}</Data></Cell>'
+    , base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) }
+    , format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) }
+    return function(tables, wsnames, wbname, appname) {
+      var ctx = "";
+      var workbookXML = "";
+      var worksheetsXML = "";
+      var rowsXML = "";
+
+      for (var i = 0; i < tables.length; i++) {
+        if (!tables[i].nodeType) tables[i] = document.getElementById(tables[i]);
+        for (var j = 0; j < tables[i].rows.length; j++) {
+          rowsXML += '<Row>'
+          for (var k = 0; k < tables[i].rows[j].cells.length; k++) {
+            var dataType = tables[i].rows[j].cells[k].getAttribute("data-type");
+            var dataStyle = tables[i].rows[j].cells[k].getAttribute("data-style");
+            var dataValue = tables[i].rows[j].cells[k].getAttribute("data-value");
+            dataValue = (dataValue)?dataValue:tables[i].rows[j].cells[k].innerHTML;
+            var dataFormula = tables[i].rows[j].cells[k].getAttribute("data-formula");
+            dataFormula = (dataFormula)?dataFormula:(appname=='Calc' && dataType=='DateTime')?dataValue:null;
+            ctx = {  attributeStyleID: (dataStyle=='Currency' || dataStyle=='Date')?' ss:StyleID="'+dataStyle+'"':''
+                   , nameType: (dataType=='Number' || dataType=='DateTime' || dataType=='Boolean' || dataType=='Error')?dataType:'String'
+                   , data: (dataFormula)?'':dataValue
+                   , attributeFormula: (dataFormula)?' ss:Formula="'+dataFormula+'"':''
+                  };
+            rowsXML += format(tmplCellXML, ctx);
+          }
+          rowsXML += '</Row>'
+        }
+        ctx = {rows: rowsXML, nameWS: wsnames[i] || 'Sheet' + i};
+        worksheetsXML += format(tmplWorksheetXML, ctx);
+        rowsXML = "";
+      }
+
+      ctx = {created: (new Date()).getTime(), worksheets: worksheetsXML};
+      workbookXML = format(tmplWorkbookXML, ctx);
+
+console.log(workbookXML);
+
+      var link = document.createElement("A");
+      link.href = uri + base64(workbookXML);
+      link.download = wbname || 'Workbook.xls';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  })();
+
+</script>
+{% endblock %}

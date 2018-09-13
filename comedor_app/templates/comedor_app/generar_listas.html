@@ -1,0 +1,129 @@
+{% extends 'MiscelAppnea/base.html' %}
+{% block header %}
+<style media="screen">
+.filtros{
+  /* padding-top:30px;
+  padding-bottom: 30px; */
+  padding: 30px;
+}
+.tabla{
+  font-size: small;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="{% url 'index' %}"><strong>Miscel</strong>[App]<strong>nea Trabis</strong></a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'comedor_app:comedor' %}">Comedor</a>
+  </li>
+  <li class="breadcrumb-item active">Generar listas</li>
+</ol>
+
+<div class="col-xl-12 col-sm-6 mb-3">
+  <div class="card text-dark bg-ligth o-hidden h-100">
+    <div class="card-header">
+      <h5><i class="fas fa-fw fa-list-ul"></i> Generar lista de empleados para el consumo de comedor</h5>
+    </div>
+    <div class="card-body">
+      <div class="card-body-icon">
+        <i class="fas fa-fw fa-list-ul"></i>
+      </div>
+      <div class="row">
+        <div class="col-md-3 bg-light filtros">
+          <form action="{% url 'comedor_app:listas' %}" method="post" >
+            {% csrf_token %}
+            <strong>Empresa</strong>
+            <select class="form-control" name="empresa" style="width:200px">
+              <option value="">Seleccione...</option>
+              {% for company in user.userprofileinfo.user_companies.all %}
+                <option value="{{company.company_name}}">{{company.company_name}}</option>
+              {% endfor %}
+            </select>
+            <br>
+            <strong>Ejercicio</strong><input type="text" name="ejercicio" class="form-control" placeholder="Ejercicio fiscal" value="{{ ejercicio }}" maxlength="4" style="width:100px" required>
+            <br>
+            <strong>Semana</strong><input type="text" name="semana" class="form-control" placeholder="Número de semana" value="{{ semana }}" maxlength="2" style="width:170px" required>
+            <br>
+            <span class="float-left"><button type="submit" class="btn btn-primary" name="buscar"><i class="fas fa-search"></i> <strong>Generar</strong></button>
+          </form>
+        </div>
+        <div class="col-md-9">
+          {% if empleados %}
+          <form class=""  method="post">
+            {% csrf_token %}
+            <input type="text" name="empresa" value="{{ empresa }}" hidden>
+            <input type="text" name="ejercicio" value="{{ ejercicio }}" hidden>
+            <input type="text" name="semana" value="{{ semana }}" hidden>
+            <table class="table-striped tabla" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Nombre</th>
+                  <th>Departamento</th>
+                  <th>lunes</th>
+                  <th>martes</th>
+                  <th>miércoles</th>
+                  <th>jueves</th>
+                  <th>viernes</th>
+                  <th>sábado</th>
+                  <th>domingo</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for emp in empleados %}
+                <tr>
+                  <td>{{ emp.codigo_empleado }}</td>
+                  <td>{{ emp.nombre_empleado }}</td>
+                  <td>{{ emp.depto_empleado }}</td>
+                  <td>
+                    {{ emp.lunes }}
+                  </td>
+                  <td>
+                    {{ emp.martes }}
+                  </td>
+                  <td>
+                    {{ emp.miercoles }}
+                  </td>
+                  <td>
+                    {{ emp.jueves }}
+                  </td>
+                  <td>
+                    {{ emp.viernes }}
+                  </td>
+                  <td>
+                    {{ emp.sabado }}
+                  </td>
+                  <td>
+                    {{ emp.domingo }}
+                  </td>
+                  <td>{{ emp.total}}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            <br>
+            <span class="float-right">
+              <button class="btn btn-success" type="submit" name="guardar" >
+                <i class="fas fa-save"></i> <strong>Guardar</strong>
+              </button>
+            </span>
+          {% else %}
+            <h3>
+              {% if mensaje != 'Exitoso!' %}
+                {{ mensaje }}
+              {% endif %}
+            </h3>
+          {% endif %}
+          </form>
+        </div>
+      </div>
+    </div>
+    <a class="card-footer text-white clearfix small z-1"></a>
+  </div>
+</div>
+{% endblock %}

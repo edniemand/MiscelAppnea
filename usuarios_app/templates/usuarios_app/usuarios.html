@@ -1,0 +1,35 @@
+{% extends "MiscelAppnea/base.html" %}
+
+{% block content %}
+<!-- Breadcrumbs-->
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="{% url 'index' %}"><strong>Miscel</strong>[App]<strong>nea Trabis</strong></a>
+  </li>
+  <li class="breadcrumb-item active">Usuarios</li>
+</ol>
+
+{% if user %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>Usuario</th>
+        <th>Indicadores</th>
+      </tr>
+    </thead>
+    {% for u in user %}
+    <tbody>
+      <tr>
+        <td>{{u.first_name}}</td>
+        <td>{{u.last_name}}</td>
+        <td>{{u.username}}</td>
+        <td>{{u.username.userprofileinfo.indicadores}}</td>
+      </tr>
+    </tbody>
+    {% endfor %}
+  </table>
+{% endif %}
+
+{% endblock %}

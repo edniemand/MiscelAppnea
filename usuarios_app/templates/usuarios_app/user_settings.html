@@ -1,0 +1,193 @@
+{% extends "MiscelAppnea/base.html" %}
+{% block header %}
+<style media="screen">
+.jumbotron{
+  border-top: 15px solid #417de0;
+  padding-top: 30px;
+}
+  .desc{
+    color: gray;
+  }
+  input{
+    padding: 4px 10px 4px 10px;
+    font-size: 18pt;
+    font-weight:600;
+    background-color: #fafafa;
+    border-radius: 5px 5px;
+    width:inherit;
+  }
+  .val{
+    padding: 5px 10px 5px 10px;
+    background-color: #fafafa;
+    border-radius: 5px 5px;
+  }
+  .bloc{
+    background-color: #ccc;
+    color: white;
+  }
+  /* The switch - the box around the slider */
+  .switch {
+    position: relative;
+    width: 64px;
+    height: 38px;
+  }
+
+  /* Hide default HTML checkbox */
+  .switch input {display:none;}
+
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 30px;
+    width: 30px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+  input:checked + .slider.round {
+    background-color: #ff0000;
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px #ff0000;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="{% url 'index' %}"><strong>Miscel</strong>[App]<strong>nea Trabis</strong></a>
+  </li>
+  <li class="breadcrumb-item active">Perfíl de usuario</li>
+</ol>
+<div class="container">
+  <div class="jumbotron">
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="row">
+        <div class="col-md-8">
+
+          <div class="row">
+            <div class="col-md-6">
+              <h5 class="desc">Nombre</h5>
+              <input class="val" type="text" name="first_name" value="{{ user.first_name }}">
+            </div>
+            <div class="col-md-6">
+              <h5 class="desc">Apellido</h5>
+              <input class="val" type="text" name="last_name" value="{{ user.last_name }}">
+            </div>
+          </div>
+          <hr>
+
+          <div class="row">
+            <div class="col-md-6">
+              <h5 class="desc">Usuario</h5>
+              <input class="val bloc" type="text" name="username" value="{{ user.username }}" readonly>
+              <!--h3 class="val bloc" name="username">{{ user.username }}</h3-->
+            </div>
+            <div class="col-md-6">
+              <h5 class="desc">Contraseña</h5>
+              <input class="val bloc" type="password" name="password" value="{{ user.password }}" disabled>
+              <!--h3 class="val bloc">*********</h3-->
+              <a href="#">Cambiar contraseña</a>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="col-md-4">
+          <h5 class="desc">Mostrar recientes al iniciar sesión</h5>
+          <label class="switch" title="Si marca esta opción, no verá la página de inicio">
+            <input type="checkbox" name="opc_recientes" {% if user.userprofileinfo.opc_recientes %} checked {% endif %}>
+            <span class="slider round"></span>
+          </label>
+          <hr>
+
+          <div class="row">
+            <div class="col-md-6">
+              <h5 class="desc">Notificaciones</h5>
+              <label class="switch" title="Activar/Desactivar notificaciones">
+                <input type="checkbox" name="opc_notificaciones" {% if user.userprofileinfo.opc_notificaciones %} checked {% endif %}>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="col-md-6">
+              <h5 class="desc">Indicadores</h5>
+              <label class="switch" title="Mostrar/Ocultar indicadores">
+                <input type="checkbox" name="indicadores" {% if user.userprofileinfo.indicadores %} checked {% endif %}>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+        <hr>
+        <div class="col-md-8">
+          <h5 class="desc">Correo electrónico</h5>
+          <input class="val" type="text" name="email" value="{{ user.email }}">
+        </div>
+      </div>
+      <hr>
+      <span class="float-lef">
+          <a href="{% url 'usuarios_app:perfil' pk=user.userprofileinfo.pk %}"><i class="fas fa-sync-alt"></i><strong> Refrescar</strong></a>
+      </span>
+      <span class="float-right">
+        <button type="submit" class="btn btn-success" data-toggle="modal" data-target="#addModal">
+          <i class="fas fa-save"></i>
+          <strong>Guardar</strong>
+        </button>
+      </span>
+
+    </form>
+
+  </div>
+</div>
+
+<!--form method="post">
+  {% csrf_token %}
+  {{ form.as_p}}
+  {{ form2.as_p}}
+</form-->
+
+{% endblock %}
